@@ -33,11 +33,11 @@ def svds(A, k = 6, which = 'LM', ncv = None, tol = 0, v0 = None, maxiter = None,
         	Return singular vectors (True) in addition to singular values
     	Returns
     	-------
-    	u : ndarray, shape=(M, k)
+    	u : ndarray, shape=(m, k)
         	Unitary matrix having left singular vectors as columns.
     	s : ndarray, shape=(k,)
         	The singular values.
-    	vt : ndarray, shape=(k, N)
+    	vt : ndarray, shape=(k, n)
         	Unitary matrix having right singular vectors as rows.
     	Notes
     	-----
@@ -56,7 +56,7 @@ def svds(A, k = 6, which = 'LM', ncv = None, tol = 0, v0 = None, maxiter = None,
 
 	#Define cyclic matrix operator [0 A; A' 0]
 	def matvec(x): 
-		return np.concatenate((A.matvec(x[:m]),A.rmatvec(x[m:])))
+		return np.concatenate((A.matvec(x[m:]),A.rmatvec(x[:m])))
 		
 	C = LinearOperator(shape = (m+n,m+n), matvec = matvec, dtype = A.dtype,\
 		rmatvec = matvec)
@@ -67,18 +67,19 @@ def svds(A, k = 6, which = 'LM', ncv = None, tol = 0, v0 = None, maxiter = None,
 			maxiter = maxiter, ncv = ncv, v0 = v0,\
 			return_eigenvectors = return_singular_vectors)
 
-		eigvals = eigvals[::2]
-		u = eigvecs[:m,::2]/np.sqrt(2)
-		v = eigvecs[m:,::2]/np.sqrt(2)
+
+		eigvals = eigvals[k:]
+		u = eigvecs[:m,k:]/np.sqrt(2)
+		v = eigvecs[m:,k:]/np.sqrt(2)
 		
-		return u[:,::-1], np.abs(eigvals[::-1]), v[:,::-1].T
+		return u[:,::-1], np.abs(eigvals)[::-1], v[:,::-1].T
 
 	else: 
 		eigvals = eigsh(C, k = 2*k, which = which, tol = tol,\
 			maxiter = maxiter, ncv = ncv, v0 = v0,\
 			return_eigenvectors = return_singular_vectors)
 	
-		return np.abs(eigvals[::2][::-1])
+		return np.abs(eigvals[k:][::-1])
 
 
 if __name__ == '__main__':
@@ -89,7 +90,7 @@ if __name__ == '__main__':
 	print s
 
 	try:
-		u, s, vh = svds_(A, k = 6, which = 'SM')
+		u, s, vh = svds(A, k = 6, which = 'SM')
 		print s
 
 	except ArpackNoConvergence:
