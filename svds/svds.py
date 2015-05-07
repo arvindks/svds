@@ -66,7 +66,7 @@ def svds(A, k = 6, which = 'LM', ncv = None, tol = 0, v0 = None, maxiter = None,
 		eigvals, eigvecs = eigsh(C, k = 2*k, which = which, tol = tol, \
 			maxiter = maxiter, ncv = ncv, v0 = v0,\
 			return_eigenvectors = return_singular_vectors)
-
+	
 
 		eigvals = eigvals[k:]
 		u = eigvecs[:m,k:]/np.sqrt(2)
@@ -84,13 +84,13 @@ def svds(A, k = 6, which = 'LM', ncv = None, tol = 0, v0 = None, maxiter = None,
 
 if __name__ == '__main__':
 
-	A = np.diag(0.95**np.arange(100))
+	A = np.diag(0.98**np.arange(100))
 	
 	u, s, vh = svds(A, k = 6, which = 'LM')
 	print s
 
 	try:
-		u, s, vh = svds(A, k = 6, which = 'SM')
+		s = svds(A, k = 6, which = 'SM', return_singular_vectors = False)
 		print s
 
 	except ArpackNoConvergence:
