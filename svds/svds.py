@@ -70,10 +70,10 @@ def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_sing
                                  maxiter=maxiter, ncv=ncv, v0=v0,
                                  return_eigenvectors=return_singular_vectors)
 
-        order = np.argsort(eigvals)
-        eigvals = eigvals[order[k:]]
-        u = eigvecs[:m, order[k:]] / np.sqrt(2)
-        v = eigvecs[m:, order[k:]] / np.sqrt(2)
+        order = np.argsort(eigvals)[k:]
+        eigvals = eigvals[order]
+        u = eigvecs[:m, order] / np.sqrt(2)
+        v = eigvecs[m:, order] / np.sqrt(2)
 
         return u, eigvals, v.T
 
@@ -81,8 +81,8 @@ def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_sing
         eigvals = eigsh(C, k=2 * k, which=which, tol=tol,
                         maxiter=maxiter, ncv=ncv, v0=v0,
                         return_eigenvectors=return_singular_vectors)
-        order = np.argsort(eigvals)
-        return eigvals[order[k:]]
+        order = np.argsort(eigvals)[k:]
+        return eigvals[order]
 
 
 if __name__ == '__main__':
@@ -95,31 +95,31 @@ if __name__ == '__main__':
 
     A = np.diag(S)
 
-    s = svds(A, k=6, which='LM', return_singular_vectors=False)
+    u, s, v = svds(A, k=6, which='LM', return_singular_vectors=True)
     print "New SVDS top 6:"
-    print np.sort(s)
+    print s
 
     try:
-        s = svds(A, k=6, which='SM', return_singular_vectors=False)
+        u, s, v = svds(A, k=6, which='SM', return_singular_vectors=True)
         print "New SVDS bottom 6"
-        print np.sort(s)
+        print s
 
     except ArpackNoConvergence:
         print "Smallest singular value computation failed"
 
     s = np.linalg.svd(A, compute_uv=False)
     print "LAPACK top 6:"
-    print np.sort(s[:6])
+    print np.sort(s[:6:])
     print "LAPACK bottom 6:"
     print np.sort(s[-6:])
 
-    s = svds_(A, k=6, which='LM', return_singular_vectors=False)
+    u, s, v = svds_(A, k=6, which='LM', return_singular_vectors=True)
     print "Old SVDS top 6"
-    print np.sort(s)
+    print s
 
     try:
-        s = svds_(A, k=6, which='SM', return_singular_vectors=False)
+        u, s, v = svds_(A, k=6, which='SM', return_singular_vectors=True)
         print "Old SVDS bottom 6:"
-        print np.sort(s)
+        print s
     except ArpackNoConvergence:
         print "Smallest singular value computation failed"
