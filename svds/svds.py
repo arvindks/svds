@@ -5,6 +5,10 @@ from scipy.sparse.linalg import svds as svds_
 from scipy.sparse.linalg import ArpackNoConvergence
 
 
+def _herm(x):
+    return x.T.conj()
+
+
 def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_singular_vectors=True):
     """
     Compute the largest k singular values/vectors for a sparse matrix.
@@ -46,11 +50,10 @@ def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_sing
     on [0 A; A' 0]
     """
 
-    if not (isinstance(A, LinearOperator) or isspmatrix(A)):
+    if not isinstance(A, LinearOperator):
         A = aslinearoperator(A)
 
     m, n = A.shape
-
     if v0 is not None:
         v0 = np.concatenate((v0, v0))
 
@@ -60,7 +63,13 @@ def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_sing
 
     # Define cyclic matrix operator [0 A; A' 0]
     def matvec(x):
-        return np.concatenate((A.matvec(x[n:]), A.rmatvec(x[:n])))
+        try:
+            result = np.concatenate((A.matvec(x[m:]), A.rmatvec(x[:m])))
+        except:
+            print(type(A))
+            raise
+        else:
+            return result
 
     C = LinearOperator(shape=(m + n, m + n), matvec=matvec, dtype=A.dtype,
                        rmatvec=matvec)
@@ -72,10 +81,10 @@ def svds(A, k=6, which='LM', ncv=None, tol=0, v0=None, maxiter=None, return_sing
 
         order = np.argsort(eigvals)[k:]
         eigvals = eigvals[order]
-        u = eigvecs[:m, order] / np.sqrt(2)
-        v = eigvecs[m:, order] / np.sqrt(2)
+        u = eigvecs[:m, order] * np.sqrt(2)
+        v = eigvecs[m:, order] * np.sqrt(2)
 
-        return u, eigvals, v.T
+        return u, eigvals, _herm(v)
 
     else:
         eigvals = eigsh(C, k=2 * k, which=which, tol=tol,
